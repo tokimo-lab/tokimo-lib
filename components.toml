@@ -1,0 +1,11 @@
+[ffmpeg]
+upstream = "https://github.com/jellyfin/jellyfin-ffmpeg"
+tag = "jellyfin"
+
+[libvips]
+upstream = "https://github.com/libvips/libvips"
+tag = "v8.18.2"
+
+[glib]
+source = "ubuntu-22.04 apt"
+version = "2.72.4"
