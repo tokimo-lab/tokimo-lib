@@ -1,0 +1,123 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PKG_CONFIG_PATH=/opt/tokimo-lib/lib/pkgconfig:/opt/tokimo-lib/share/pkgconfig \
+    LD_LIBRARY_PATH=/opt/tokimo-lib/lib
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN set -eux; \
+    sed -i -E 's/(^deb .* jammy[^ ]* .*)/\1 universe multiverse/' /etc/apt/sources.list; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+      build-essential \
+      pkg-config \
+      nasm \
+      yasm \
+      autoconf \
+      automake \
+      libtool \
+      meson \
+      ninja-build \
+      cmake \
+      git \
+      ca-certificates \
+      curl \
+      zstd \
+      patchelf \
+      python3 \
+      python3-pip \
+      clang \
+      zlib1g-dev \
+      tar \
+      xz-utils \
+      file \
+      expat; \
+    packages=( \
+      libdrm-dev \
+      libva-dev \
+      libvulkan-dev \
+      libnuma-dev \
+      libvdpau-dev \
+      libplacebo-dev \
+      libshaderc-dev \
+      ocl-icd-opencl-dev \
+      libass-dev \
+      libfreetype-dev \
+      libfribidi-dev \
+      libharfbuzz-dev \
+      libfontconfig1-dev \
+      libsdl2-dev \
+      libasound2-dev \
+      libpulse-dev \
+      libjack-jackd2-dev \
+      libopus-dev \
+      libvorbis-dev \
+      libmp3lame-dev \
+      libsoxr-dev \
+      libfdk-aac-dev \
+      libtheora-dev \
+      libopenmpt-dev \
+      libbluray-dev \
+      libdav1d-dev \
+      libaom-dev \
+      libsvtav1-dev \
+      libx264-dev \
+      libx265-dev \
+      libvpx-dev \
+      libwebp-dev \
+      libopenjp2-7-dev \
+      libjxl-dev \
+      libzimg-dev \
+      libchromaprint-dev \
+      libsrt-gnutls-dev \
+      libgnutls28-dev \
+      nettle-dev \
+      libzvbi-dev \
+      libglib2.0-dev \
+      libexpat1-dev \
+      libjpeg-turbo8-dev \
+      libpng-dev \
+      libtiff-dev \
+      libheif-dev \
+      libimagequant-dev \
+      libexif-dev \
+      librsvg2-dev \
+      liborc-0.4-dev \
+      libfftw3-dev \
+      libpoppler-glib-dev \
+      libopenexr-dev \
+      libmatio-dev \
+      libarchive-dev \
+      liblcms2-dev \
+      libgif-dev \
+      libopenslide-dev \
+    ); \
+    optional_packages=( \
+      libsvtav1enc-dev \
+      libcgif-dev \
+      libspng-dev \
+    ); \
+    if apt-cache show libvpl-dev >/dev/null 2>&1; then \
+      packages+=(libvpl-dev); \
+    elif apt-cache show libmfx-dev >/dev/null 2>&1; then \
+      packages+=(libmfx-dev); \
+    fi; \
+    if apt-cache show libniftiio-dev >/dev/null 2>&1; then \
+      packages+=(libniftiio-dev); \
+    elif apt-cache show libnifti-dev >/dev/null 2>&1; then \
+      packages+=(libnifti-dev); \
+    fi; \
+    for pkg in "${optional_packages[@]}"; do \
+      if apt-cache show "$pkg" >/dev/null 2>&1; then \
+        packages+=("$pkg"); \
+      fi; \
+    done; \
+    apt-get install -y --no-install-recommends "${packages[@]}"; \
+    git clone --depth 1 https://github.com/FFmpeg/nv-codec-headers.git /usr/src/nv-codec-headers; \
+    make -C /usr/src/nv-codec-headers install PREFIX=/usr; \
+    rm -rf /usr/src/nv-codec-headers; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /work
