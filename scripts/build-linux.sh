@@ -16,6 +16,12 @@ TP_PREFIX="$THIRD_PARTY_DIR/prefix"
 CONFIGURE_LOG="$BUILD_ROOT/ffmpeg-configure.log"
 MAKE_LOG="$BUILD_ROOT/ffmpeg-make.log"
 COMPONENTS_FILE="$REPO_ROOT/components.toml"
+LIBVIPS_DEFAULT_VERSION="8.18.2"
+LIBVIPS_VERSION="${LIBVIPS_VERSION:-}"
+LIBVIPS_SRC_DIR="$BUILD_ROOT/vips-$LIBVIPS_VERSION"
+LIBVIPS_TARBALL="$BUILD_ROOT/vips-$LIBVIPS_VERSION.tar.xz"
+LIBVIPS_BUILD_DIR="$BUILD_ROOT/vips-$LIBVIPS_VERSION-build"
+LIBVIPS_BUILD_LOG="$BUILD_ROOT/libvips-build.log"
 
 mkdir -p "$PREFIX" "$BUILD_ROOT"
 
@@ -68,6 +74,23 @@ resolve_ffmpeg_source() {
 
   FFMPEG_GIT_URL="${FFMPEG_GIT_URL:-${configured_url:-$default_url}}"
   FFMPEG_REF="${FFMPEG_REF:-${configured_ref:-$default_ref}}"
+}
+
+set_libvips_paths() {
+  LIBVIPS_SRC_DIR="$BUILD_ROOT/vips-$LIBVIPS_VERSION"
+  LIBVIPS_TARBALL="$BUILD_ROOT/vips-$LIBVIPS_VERSION.tar.xz"
+  LIBVIPS_BUILD_DIR="$BUILD_ROOT/vips-$LIBVIPS_VERSION-build"
+  LIBVIPS_BUILD_LOG="$BUILD_ROOT/libvips-build.log"
+}
+
+resolve_libvips_source() {
+  local configured_tag=""
+
+  configured_tag="$(toml_value libvips tag "$COMPONENTS_FILE" || true)"
+  configured_tag="${configured_tag#v}"
+  LIBVIPS_VERSION="${LIBVIPS_VERSION:-${configured_tag:-$LIBVIPS_DEFAULT_VERSION}}"
+  LIBVIPS_VERSION="${LIBVIPS_VERSION#v}"
+  set_libvips_paths
 }
 
 pkg_exists() {
@@ -293,6 +316,64 @@ configure_flags() {
   fi
 }
 
+download_libvips_source() {
+  local url="https://github.com/libvips/libvips/releases/download/v${LIBVIPS_VERSION}/vips-${LIBVIPS_VERSION}.tar.xz"
+
+  if [[ ! -f "$LIBVIPS_TARBALL" ]]; then
+    log "Downloading libvips $LIBVIPS_VERSION"
+    curl -fL "$url" -o "$LIBVIPS_TARBALL"
+  fi
+
+  if [[ ! -d "$LIBVIPS_SRC_DIR" ]]; then
+    log "Extracting libvips to $LIBVIPS_SRC_DIR"
+    tar -C "$BUILD_ROOT" -xf "$LIBVIPS_TARBALL" "vips-${LIBVIPS_VERSION}"
+  fi
+
+  if [[ ! -f "$LIBVIPS_SRC_DIR/meson.build" ]]; then
+    die "libvips source directory not found at $LIBVIPS_SRC_DIR"
+  fi
+}
+
+build_libvips() {
+  local meson_flags=(
+    "--prefix=$PREFIX"
+    "--libdir=lib"
+    "--buildtype=release"
+    "-Dintrospection=disabled"
+    "-Dexamples=false"
+    "-Ddeprecated=false"
+    "-Dmodules=disabled"
+  )
+
+  download_libvips_source
+  log "Configuring libvips $LIBVIPS_VERSION"
+  if [[ -f "$LIBVIPS_BUILD_DIR/build.ninja" ]]; then
+    if ! meson setup "$LIBVIPS_BUILD_DIR" "$LIBVIPS_SRC_DIR" --reconfigure "${meson_flags[@]}" > "$LIBVIPS_BUILD_LOG" 2>&1; then
+      tail -40 "$LIBVIPS_BUILD_LOG" >&2 || true
+      die "libvips configure failed; see $LIBVIPS_BUILD_LOG"
+    fi
+  elif ! meson setup "$LIBVIPS_BUILD_DIR" "$LIBVIPS_SRC_DIR" "${meson_flags[@]}" > "$LIBVIPS_BUILD_LOG" 2>&1; then
+    tail -40 "$LIBVIPS_BUILD_LOG" >&2 || true
+    die "libvips configure failed; see $LIBVIPS_BUILD_LOG"
+  fi
+
+  log "Building libvips (jobs=$JOBS)"
+  if ! ninja -C "$LIBVIPS_BUILD_DIR" -j"$JOBS" >> "$LIBVIPS_BUILD_LOG" 2>&1; then
+    tail -40 "$LIBVIPS_BUILD_LOG" >&2 || true
+    die "libvips build failed; see $LIBVIPS_BUILD_LOG"
+  fi
+
+  log "Installing libvips to $PREFIX"
+  if ! ninja -C "$LIBVIPS_BUILD_DIR" install >> "$LIBVIPS_BUILD_LOG" 2>&1; then
+    tail -40 "$LIBVIPS_BUILD_LOG" >&2 || true
+    die "libvips install failed; see $LIBVIPS_BUILD_LOG"
+  fi
+
+  if [[ ! -x "$PREFIX/bin/vips" ]]; then
+    die "vips binary not found at $PREFIX/bin/vips"
+  fi
+}
+
 build_ffmpeg() {
   local host_arch
   local flags=()
@@ -323,12 +404,15 @@ build_ffmpeg() {
 
 main() {
   resolve_ffmpeg_source
+  resolve_libvips_source
   log "Using FFmpeg source $FFMPEG_GIT_URL ($FFMPEG_REF)"
   sync_git_repo "$FFMPEG_GIT_URL" "$FFMPEG_REF" "$SRC_DIR"
   apply_debian_patches
   setup_third_party_headers
   build_ffmpeg
-  log "FFmpeg build complete: $PREFIX/bin/ffmpeg"
+  log "Using libvips $LIBVIPS_VERSION"
+  build_libvips
+  log "FFmpeg and libvips build complete: $PREFIX/bin/ffmpeg, $PREFIX/bin/vips"
 }
 
 main "$@"
