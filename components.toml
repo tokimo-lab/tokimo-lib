@@ -10,6 +10,15 @@ tag = "v8.18.2"
 source_tar_xz_sha256 = "a30d4aede16f1c2899c1a2241870f8a7409feafa38484bcdcdac113d6d6f8ff5"
 windows_zip_sha256 = "08effbafe12c6700345882b011cefeb41bcb305b959f5c0812a56cd1b0ddb752"
 
+[third-party.nv-codec-headers]
+commit = "33a9ede8d9914299d9262539c576a15bd0a19621"
+
+[third-party.Vulkan-Headers]
+commit = "8cfaaa1d4deedc865e52a42e654c5ec0d7d75eb0"
+
+[third-party.AMF]
+commit = "eadd00804d5f7e5cd8c85d540073198312870776"
+
 [glib]
 source = "ubuntu-22.04 apt"
 version = "2.72.4"

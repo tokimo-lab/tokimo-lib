@@ -164,6 +164,31 @@ sync_git_repo() {
   fi
 }
 
+third_party_commit() {
+  local name="$1"
+  local commit
+
+  commit="$(toml_value "third-party.$name" commit "$COMPONENTS_FILE" || true)"
+  [[ -n "$commit" ]] || die "missing third-party.$name.commit in $COMPONENTS_FILE"
+  printf '%s\n' "$commit"
+}
+
+sync_third_party_repo() {
+  local url="$1"
+  local dir="$2"
+  local commit="$3"
+
+  if [[ -d "$dir/.git" ]]; then
+    git -C "$dir" fetch --tags --prune origin
+  elif [[ -e "$dir" ]]; then
+    die "$dir exists but is not a git repository"
+  else
+    git clone "$url" "$dir"
+  fi
+
+  git -C "$dir" checkout --force --detach "$commit"
+}
+
 apply_debian_patches() {
   local series_file="$SRC_DIR/debian/patches/series"
   local applied=0
@@ -203,39 +228,29 @@ setup_third_party_headers() {
   mkdir -p "$THIRD_PARTY_DIR" "$TP_PREFIX"
 
   local nv_dir="$THIRD_PARTY_DIR/nv-codec-headers"
-  if [[ -d "$nv_dir/.git" ]]; then
-    git -C "$nv_dir" fetch --tags --prune origin
-    git -C "$nv_dir" pull --rebase origin master || true
-  elif [[ -e "$nv_dir" ]]; then
-    die "$nv_dir exists but is not a git repository"
-  else
-    git clone https://github.com/FFmpeg/nv-codec-headers.git "$nv_dir"
-  fi
+  sync_third_party_repo \
+    https://github.com/FFmpeg/nv-codec-headers.git \
+    "$nv_dir" \
+    "$(third_party_commit nv-codec-headers)"
   make -C "$nv_dir" PREFIX="$TP_PREFIX" install
 
   export PKG_CONFIG_PATH="$TP_PREFIX/lib/pkgconfig:$TP_PREFIX/share/pkgconfig:$PKG_CONFIG_PATH"
   export CPATH="$TP_PREFIX/include:${CPATH:-}"
 
   local vk_dir="$THIRD_PARTY_DIR/Vulkan-Headers"
-  if [[ -d "$vk_dir/.git" ]]; then
-    git -C "$vk_dir" pull --rebase origin main || true
-  elif [[ -e "$vk_dir" ]]; then
-    die "$vk_dir exists but is not a git repository"
-  else
-    git clone --depth 1 https://github.com/KhronosGroup/Vulkan-Headers.git "$vk_dir"
-  fi
+  sync_third_party_repo \
+    https://github.com/KhronosGroup/Vulkan-Headers.git \
+    "$vk_dir" \
+    "$(third_party_commit Vulkan-Headers)"
   cmake -S "$vk_dir" -B "$vk_dir/build" -DCMAKE_INSTALL_PREFIX="$TP_PREFIX" -DCMAKE_BUILD_TYPE=Release >/dev/null 2>&1
   cmake --install "$vk_dir/build" >/dev/null 2>&1
 
   local amf_dir="$THIRD_PARTY_DIR/AMF"
   local amf_include="$THIRD_PARTY_DIR/include/AMF"
-  if [[ -d "$amf_dir/.git" ]]; then
-    git -C "$amf_dir" pull --rebase origin master || true
-  elif [[ -e "$amf_dir" ]]; then
-    die "$amf_dir exists but is not a git repository"
-  else
-    git clone https://github.com/GPUOpen-LibrariesAndSDKs/AMF.git "$amf_dir"
-  fi
+  sync_third_party_repo \
+    https://github.com/GPUOpen-LibrariesAndSDKs/AMF.git \
+    "$amf_dir" \
+    "$(third_party_commit AMF)"
   rm -rf "$amf_include"
   mkdir -p "$amf_include"
   cp -R "$amf_dir/amf/public/include/." "$amf_include/"
