@@ -316,10 +316,10 @@ configure_flags() {
 
   flags_ref+=("--enable-amf")
 
-  if pkg_version_at_least vpl 2.6; then
-    flags_ref+=("--enable-libvpl")
-  elif pkg_exists libmfx; then
+  if pkg_exists libmfx; then
     flags_ref+=("--enable-libmfx")
+  elif pkg_version_at_least vpl 2.6; then
+    flags_ref+=("--enable-libvpl")
   fi
 }
 

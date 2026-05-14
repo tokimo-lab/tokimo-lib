@@ -98,10 +98,11 @@ RUN set -eux; \
       libcgif-dev \
       libspng-dev \
     ); \
-    if apt-cache show libvpl-dev >/dev/null 2>&1; then \
-      packages+=(libvpl-dev); \
-    elif apt-cache show libmfx-dev >/dev/null 2>&1; then \
+    # Ubuntu 22.04 (Jammy) libvpl is too old for FFmpeg's libvpl >= 2.6 check.
+    if apt-cache show libmfx-dev >/dev/null 2>&1; then \
       packages+=(libmfx-dev); \
+    elif apt-cache show libvpl-dev >/dev/null 2>&1; then \
+      packages+=(libvpl-dev); \
     fi; \
     if apt-cache show libniftiio-dev >/dev/null 2>&1; then \
       packages+=(libniftiio-dev); \
