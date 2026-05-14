@@ -35,7 +35,7 @@ jobs:
             -v "$PWD:/work" \
             -w /work \
             tokimo-lib-linux-build \
-            bash -lc './scripts/build-linux.sh && ./scripts/bundle-runtime-deps.sh && ./scripts/verify-bundle.sh'
+            bash -lc 'git config --global --add safe.directory /work && ./scripts/build-linux.sh && ./scripts/bundle-runtime-deps.sh && ./scripts/verify-bundle.sh'
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
