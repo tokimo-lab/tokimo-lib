@@ -304,13 +304,13 @@ patch_rpaths() {
   for path in "$INSTALL_LIB"/*; do
     [[ -f "$path" ]] || continue
     is_dynamic_elf "$path" || continue
-    patchelf --set-rpath '$ORIGIN' -- "$path"
+    patchelf --set-rpath '$ORIGIN' "$path"
   done
 
   for path in "$INSTALL_BIN"/*; do
     [[ -f "$path" ]] || continue
     is_dynamic_elf "$path" || continue
-    patchelf --set-rpath '$ORIGIN/../lib' -- "$path"
+    patchelf --set-rpath '$ORIGIN/../lib' "$path"
   done
 }
 

@@ -511,7 +511,9 @@ remember_copied_provider() {
   idx="$(copied_key_index "$key" || true)"
   if [[ -n "$idx" ]]; then
     if [[ "${COPIED_PROVIDERS[$idx]}" != "$src_real" ]]; then
-      die "duplicate runtime provider for $key: ${COPIED_BASENAMES[$idx]} and $base"
+      if ! cmp -s "${COPIED_PROVIDERS[$idx]}" "$src_real"; then
+        die "duplicate runtime provider for $key: ${COPIED_BASENAMES[$idx]} and $base"
+      fi
     fi
     return 0
   fi
