@@ -480,8 +480,12 @@ array_contains() {
 
 queue_add() {
   local path="$1"
-  array_contains "$path" "${QUEUE[@]}" && return 0
-  array_contains "$path" "${SEEN_QUEUE[@]}" && return 0
+  if ((${#QUEUE[@]} > 0)) && array_contains "$path" "${QUEUE[@]}"; then
+    return 0
+  fi
+  if ((${#SEEN_QUEUE[@]} > 0)) && array_contains "$path" "${SEEN_QUEUE[@]}"; then
+    return 0
+  fi
   QUEUE+=("$path")
 }
 
@@ -560,10 +564,16 @@ bundle_runtime_deps() {
 
   while [[ ${#QUEUE[@]} -gt 0 ]]; do
     item="${QUEUE[0]}"
-    QUEUE=("${QUEUE[@]:1}")
+    if ((${#QUEUE[@]} > 1)); then
+      QUEUE=("${QUEUE[@]:1}")
+    else
+      QUEUE=()
+    fi
     [[ -f "$item" ]] || continue
     item_real="$(canonical_path "$item")"
-    array_contains "$item_real" "${SEEN_QUEUE[@]}" && continue
+    if ((${#SEEN_QUEUE[@]} > 0)) && array_contains "$item_real" "${SEEN_QUEUE[@]}"; then
+      continue
+    fi
     SEEN_QUEUE+=("$item_real")
 
     while IFS= read -r dep; do
