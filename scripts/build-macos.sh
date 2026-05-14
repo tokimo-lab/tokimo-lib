@@ -506,16 +506,16 @@ remember_copied_provider() {
   local key="$1"
   local src_real="$2"
   local base="$3"
-  local idx=""
+  local idx="" existing_real
 
   idx="$(copied_key_index "$key" || true)"
   if [[ -n "$idx" ]]; then
-    if [[ "${COPIED_PROVIDERS[$idx]}" != "$src_real" ]]; then
-      if ! cmp -s "${COPIED_PROVIDERS[$idx]}" "$src_real"; then
-        die "duplicate runtime provider for $key: ${COPIED_BASENAMES[$idx]} and $base"
-      fi
+    existing_real="${COPIED_PROVIDERS[$idx]}"
+    # Treat as same provider if canonical paths match OR file contents are byte-equal
+    if [[ "$existing_real" == "$src_real" ]] || cmp -s "$existing_real" "$src_real" 2>/dev/null; then
+      return 0
     fi
-    return 0
+    die "duplicate runtime provider for $key: ${COPIED_BASENAMES[$idx]} ($existing_real) and $base ($src_real)"
   fi
 
   COPIED_KEYS+=("$key")

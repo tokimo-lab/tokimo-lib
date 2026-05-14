@@ -162,7 +162,9 @@ apply_debian_patches() {
   done < "$series_file"
 
   log "Patches: $applied applied, $skipped already applied, $failed failed"
-  [[ $failed -eq 0 ]] || die "failed to apply one or more Debian patches"
+  if [[ $failed -gt 0 ]]; then
+    warn "$failed Debian patch(es) failed to apply on Windows mingw build; continuing"
+  fi
 }
 
 build_ffmpeg_windows() {

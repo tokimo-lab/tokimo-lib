@@ -302,15 +302,19 @@ patch_rpaths() {
 
   shopt -s nullglob
   for path in "$INSTALL_LIB"/*; do
-    [[ -f "$path" ]] || continue
+    [[ -n "$path" && -f "$path" ]] || continue
     is_dynamic_elf "$path" || continue
-    patchelf --set-rpath '$ORIGIN' "$path"
+    if ! patchelf --set-rpath '$ORIGIN' "$path"; then
+      die "patchelf failed on lib: '$path' (file output: $(file -b -- "$path" 2>&1 || true))"
+    fi
   done
 
   for path in "$INSTALL_BIN"/*; do
-    [[ -f "$path" ]] || continue
+    [[ -n "$path" && -f "$path" ]] || continue
     is_dynamic_elf "$path" || continue
-    patchelf --set-rpath '$ORIGIN/../lib' "$path"
+    if ! patchelf --set-rpath '$ORIGIN/../lib' "$path"; then
+      die "patchelf failed on bin: '$path' (file output: $(file -b -- "$path" 2>&1 || true))"
+    fi
   done
 }
 
