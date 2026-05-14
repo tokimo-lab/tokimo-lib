@@ -10,6 +10,9 @@ tag = "v8.18.2"
 source_tar_xz_sha256 = "a30d4aede16f1c2899c1a2241870f8a7409feafa38484bcdcdac113d6d6f8ff5"
 windows_zip_sha256 = "08effbafe12c6700345882b011cefeb41bcb305b959f5c0812a56cd1b0ddb752"
 
+[fdk-aac]
+commit = "d8e6b1a3aa606c450241632b64b703f21ea31ce3"
+
 [third-party.nv-codec-headers]
 commit = "33a9ede8d9914299d9262539c576a15bd0a19621"
 

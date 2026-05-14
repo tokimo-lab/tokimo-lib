@@ -11,7 +11,7 @@ REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd -P)"
 #   WORK_DIR    Parent for build scratch state. Defaults to the repository root.
 #   BUILD_ROOT  Build/download/log directory. Defaults to $WORK_DIR/build.
 #   BTBN_IMAGE  BtbN Windows cross-build image for FFmpeg.
-#   FDK_AAC_REF Pinned mstorsjo/fdk-aac commit built inside the container.
+#   FDK_AAC_REF Optional override for the pinned mstorsjo/fdk-aac commit.
 PREFIX_WAS_SET=0
 if [[ ${PREFIX+x} ]]; then
   PREFIX_WAS_SET=1
@@ -37,7 +37,7 @@ FFMPEG_GIT_URL=""
 FFMPEG_REF=""
 PATCH_CMD="patch"
 IMAGE="${BTBN_IMAGE:-ghcr.io/btbn/ffmpeg-builds/win64-gpl-shared:latest}"
-FDK_AAC_REF="${FDK_AAC_REF:-d8e6b1a3aa606c450241632b64b703f21ea31ce3}"
+FDK_AAC_REF="${FDK_AAC_REF:-}"
 
 log() { printf '[build-windows] %s\n' "$*"; }
 warn() { printf '[build-windows] WARN: %s\n' "$*" >&2; }
@@ -108,6 +108,14 @@ resolve_libvips_source() {
   configured_tag="${configured_tag#v}"
   LIBVIPS_VERSION="${LIBVIPS_VERSION:-${configured_tag:-$LIBVIPS_DEFAULT_VERSION}}"
   LIBVIPS_VERSION="${LIBVIPS_VERSION#v}"
+}
+
+resolve_fdk_aac_source() {
+  local configured_ref
+
+  configured_ref="$(toml_value fdk-aac commit "$COMPONENTS_FILE" || true)"
+  FDK_AAC_REF="${FDK_AAC_REF:-$configured_ref}"
+  [[ -n "$FDK_AAC_REF" ]] || die "missing fdk-aac.commit in $COMPONENTS_FILE"
 }
 
 verify_libvips_windows_checksum() {
@@ -478,6 +486,7 @@ main() {
   require_standard_commands
   resolve_ffmpeg_source
   resolve_libvips_source
+  resolve_fdk_aac_source
 
   log "Using FFmpeg source $FFMPEG_GIT_URL ($FFMPEG_REF)"
   sync_git_repo "$FFMPEG_GIT_URL" "$FFMPEG_REF" "$SRC_DIR"
