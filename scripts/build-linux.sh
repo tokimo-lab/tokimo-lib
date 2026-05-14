@@ -97,25 +97,32 @@ pkg_exists() {
   command -v pkg-config >/dev/null 2>&1 && pkg-config --exists "$1"
 }
 
+pkg_version_at_least() {
+  local pkg="$1"
+  local min_version="$2"
+
+  command -v pkg-config >/dev/null 2>&1 && pkg-config --atleast-version="$min_version" "$pkg"
+}
+
 append_if_pkg() {
-  local -n flags_ref="$1"
+  local -n append_flags_ref="$1"
   local flag="$2"
   local pkg="$3"
 
   if pkg_exists "$pkg"; then
-    flags_ref+=("$flag")
+    append_flags_ref+=("$flag")
   fi
 }
 
 append_if_any_pkg() {
-  local -n flags_ref="$1"
+  local -n append_flags_ref="$1"
   local flag="$2"
   shift 2
 
   local pkg
   for pkg in "$@"; do
     if pkg_exists "$pkg"; then
-      flags_ref+=("$flag")
+      append_flags_ref+=("$flag")
       return 0
     fi
   done
@@ -309,7 +316,7 @@ configure_flags() {
 
   flags_ref+=("--enable-amf")
 
-  if pkg_exists vpl; then
+  if pkg_version_at_least vpl 2.6; then
     flags_ref+=("--enable-libvpl")
   elif pkg_exists libmfx; then
     flags_ref+=("--enable-libmfx")
