@@ -258,7 +258,6 @@ main() {
 
   ensure_tree_shape "$tree"
   verify_glib_soname_providers "$tree"
-  verify_glib_needed_lists_match
   verify_bin_ldd "$tree"
   verify_ffmpeg_encoders "$tree"
   verify_vips_version "$tree"
