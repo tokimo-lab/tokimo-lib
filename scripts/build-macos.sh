@@ -16,7 +16,7 @@ fi
 WORK_DIR="${WORK_DIR:-$REPO_ROOT}"
 BUILD_ROOT="${BUILD_ROOT:-$WORK_DIR/build}"
 INSTALL_DIR="$REPO_ROOT/install"
-TARBALL="$INSTALL_DIR/install-macos-arm64.tar.zst"
+TARBALL="$INSTALL_DIR/tokimo-lib-macos-aarch64.tar.zst"
 COMPONENTS_FILE="$REPO_ROOT/components.toml"
 LIBVIPS_DEFAULT_VERSION="8.18.2"
 

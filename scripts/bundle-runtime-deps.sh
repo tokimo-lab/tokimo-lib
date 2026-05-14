@@ -7,7 +7,7 @@ REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd -P)"
 PREFIX="${PREFIX:-/opt/tokimo-lib}"
 INSTALL_DIR="${INSTALL_DIR:-$REPO_ROOT/install}"
 INSTALL_DIR="$(realpath -m -- "$INSTALL_DIR")"
-TARBALL="$INSTALL_DIR/install-linux.tar.zst"
+TARBALL="$INSTALL_DIR/tokimo-lib-linux-x86_64.tar.zst"
 
 INSTALL_BIN="$INSTALL_DIR/bin"
 INSTALL_LIB="$INSTALL_DIR/lib"

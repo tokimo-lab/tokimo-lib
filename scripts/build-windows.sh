@@ -21,7 +21,7 @@ WORK_DIR="${WORK_DIR:-$REPO_ROOT}"
 BUILD_ROOT="${BUILD_ROOT:-$WORK_DIR/build}"
 COMPONENTS_FILE="$REPO_ROOT/components.toml"
 INSTALL_DIR="$REPO_ROOT/install"
-TARBALL="$INSTALL_DIR/install-windows.tar.zst"
+TARBALL="$INSTALL_DIR/tokimo-lib-windows-x86_64.tar.zst"
 WINDOWS_PREFIX="$BUILD_ROOT/windows-prefix"
 if [[ $PREFIX_WAS_SET -eq 1 ]]; then
   WINDOWS_PREFIX="$PREFIX"

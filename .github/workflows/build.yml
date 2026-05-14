@@ -34,8 +34,8 @@ jobs:
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
-          name: install-linux
-          path: install/install-linux.tar.zst
+          name: tokimo-lib-linux-x86_64
+          path: install/tokimo-lib-linux-x86_64.tar.zst
           if-no-files-found: error
 
   macos:
@@ -59,8 +59,8 @@ jobs:
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
-          name: install-macos-arm64
-          path: install/install-macos-arm64.tar.zst
+          name: tokimo-lib-macos-aarch64
+          path: install/tokimo-lib-macos-aarch64.tar.zst
           if-no-files-found: error
 
   windows:
@@ -76,6 +76,6 @@ jobs:
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
-          name: install-windows
-          path: install/install-windows.tar.zst
+          name: tokimo-lib-windows-x86_64
+          path: install/tokimo-lib-windows-x86_64.tar.zst
           if-no-files-found: error
