@@ -1,6 +1,6 @@
 [ffmpeg]
 upstream = "https://github.com/jellyfin/jellyfin-ffmpeg"
-tag = "jellyfin"
+commit = "613dc1a1c2a5d9207588d3e84b4749e8be38bd29"
 
 [libvips]
 upstream = "https://github.com/libvips/libvips"

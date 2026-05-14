@@ -86,7 +86,10 @@ resolve_ffmpeg_source() {
   local configured_ref=""
 
   configured_url="$(toml_value ffmpeg upstream "$COMPONENTS_FILE" || true)"
-  configured_ref="$(toml_value ffmpeg ref "$COMPONENTS_FILE" || true)"
+  configured_ref="$(toml_value ffmpeg commit "$COMPONENTS_FILE" || true)"
+  if [[ -z "$configured_ref" ]]; then
+    configured_ref="$(toml_value ffmpeg ref "$COMPONENTS_FILE" || true)"
+  fi
   if [[ -z "$configured_ref" ]]; then
     configured_ref="$(toml_value ffmpeg tag "$COMPONENTS_FILE" || true)"
   fi
@@ -129,7 +132,9 @@ sync_git_repo() {
     git clone "$url" "$dir"
   fi
 
-  if git -C "$dir" rev-parse --verify "refs/tags/$ref" >/dev/null 2>&1; then
+  if [[ "$ref" =~ ^[0-9a-f]{40}$ ]]; then
+    git -C "$dir" checkout --force --detach "$ref"
+  elif git -C "$dir" rev-parse --verify "refs/tags/$ref" >/dev/null 2>&1; then
     git -C "$dir" checkout --force "refs/tags/$ref"
   elif git -C "$dir" rev-parse --verify "refs/remotes/origin/$ref" >/dev/null 2>&1; then
     git -C "$dir" checkout --force -B "$ref" "origin/$ref"

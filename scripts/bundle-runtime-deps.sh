@@ -98,7 +98,10 @@ parse_toml_value() {
 
 resolve_ffmpeg_ref_for_meta() {
   local ffmpeg_ref
-  ffmpeg_ref="$(parse_toml_value ffmpeg ref)"
+  ffmpeg_ref="$(parse_toml_value ffmpeg commit)"
+  if [[ -z "$ffmpeg_ref" ]]; then
+    ffmpeg_ref="$(parse_toml_value ffmpeg ref)"
+  fi
   if [[ -z "$ffmpeg_ref" ]]; then
     ffmpeg_ref="$(parse_toml_value ffmpeg tag)"
   fi
