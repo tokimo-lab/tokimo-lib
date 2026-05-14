@@ -231,7 +231,7 @@ verify_ffmpeg_encoders() {
   local output encoder
 
   [[ -x "$ffmpeg" ]] || fail "ffmpeg is missing or not executable: $ffmpeg"
-  output="$(LD_LIBRARY_PATH="$tree/lib:${LD_LIBRARY_PATH:-}" "$ffmpeg" --list-encoders)"
+  output="$(LD_LIBRARY_PATH="$tree/lib:${LD_LIBRARY_PATH:-}" "$ffmpeg" -hide_banner -encoders)"
 
   for encoder in "${REQUIRED_ENCODERS[@]}"; do
     if ! grep -Fq -- "$encoder" <<<"$output"; then
