@@ -298,7 +298,9 @@ configure_flags() {
   append_if_pkg flags_ref "--enable-libpulse" libpulse
 
   append_if_pkg flags_ref "--enable-vulkan" vulkan
-  append_if_pkg flags_ref "--enable-libplacebo" libplacebo
+  if pkg_version_at_least libplacebo 6.0; then
+    flags_ref+=("--enable-libplacebo")
+  fi
   append_if_any_pkg flags_ref "--enable-libshaderc" shaderc shaderc_combined
   append_if_pkg flags_ref "--enable-opencl" OpenCL
   append_if_pkg flags_ref "--enable-vaapi" libva
