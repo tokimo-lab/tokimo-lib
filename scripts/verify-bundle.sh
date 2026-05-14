@@ -40,6 +40,19 @@ is_elf() {
   file -Lb -- "$path" | grep -q 'ELF'
 }
 
+is_base_loader_lib() {
+  local name="$1"
+  case "$name" in
+    linux-vdso*|ld-linux*|libc.so*|libdl.so*|libm.so*|libpthread.so*|librt.so*|\
+    libgcc_s.so*|libstdc++.so*|libresolv.so*|libutil.so*|libnsl.so*|libcrypt.so*|libanl.so*)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 soname_of() {
   local path="$1"
   readelf -d -- "$path" 2>/dev/null \
@@ -171,7 +184,7 @@ verify_ldd_path() {
   local tree="$1"
   local bin="$2"
   local tree_real="$3"
-  local line dep dep_real
+  local line dep dep_name dep_real
 
   while IFS= read -r line; do
     if [[ "$line" == *'not found'* ]]; then
@@ -183,6 +196,11 @@ verify_ldd_path() {
     elif [[ "$line" =~ ^[[:space:]]*(/[^[:space:]]+) ]]; then
       dep="${BASH_REMATCH[1]}"
     else
+      continue
+    fi
+
+    dep_name="$(basename -- "$dep")"
+    if is_base_loader_lib "$dep_name"; then
       continue
     fi
 
