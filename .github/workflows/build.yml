@@ -17,16 +17,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cache Linux build files
-        uses: actions/cache@v4
-        with:
-          path: |
-            build
-            .cache
-          key: linux-build-${{ runner.os }}-${{ hashFiles('components.toml', 'scripts/build-linux.sh', 'scripts/bundle-runtime-deps.sh', 'scripts/verify-bundle.sh', 'docker/Dockerfile.linux') }}
-          restore-keys: |
-            linux-build-${{ runner.os }}-
-
       - name: Build Linux Docker image
         run: docker build -f docker/Dockerfile.linux -t tokimo-lib-linux-build .
 
@@ -52,13 +42,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cache macOS build files
+      - name: Cache macOS Homebrew files
         uses: actions/cache@v4
         with:
-          path: |
-            build
-            .cache
-            ~/Library/Caches/Homebrew
+          path: ~/Library/Caches/Homebrew
           key: macos-build-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('components.toml', 'scripts/build-macos.sh') }}
           restore-keys: |
             macos-build-${{ runner.os }}-${{ runner.arch }}-
@@ -79,16 +66,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Cache Windows build files
-        uses: actions/cache@v4
-        with:
-          path: |
-            build
-            .cache
-          key: windows-build-${{ runner.os }}-${{ hashFiles('components.toml', 'scripts/build-windows.sh') }}
-          restore-keys: |
-            windows-build-${{ runner.os }}-
 
       - name: Build Windows bundle
         run: bash scripts/build-windows.sh
