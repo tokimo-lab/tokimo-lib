@@ -28,6 +28,9 @@ jobs:
             tokimo-lib-linux-build \
             bash -lc 'git config --global --add safe.directory /work && ./scripts/build-linux.sh && ./scripts/bundle-runtime-deps.sh && ./scripts/verify-bundle.sh'
 
+      - name: Fix Linux artifact permissions
+        run: sudo chown -R "$(id -u):$(id -g)" install
+
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
