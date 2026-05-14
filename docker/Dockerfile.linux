@@ -40,7 +40,6 @@ RUN set -eux; \
       libnuma-dev \
       libvdpau-dev \
       libplacebo-dev \
-      libshaderc-dev \
       ocl-icd-opencl-dev \
       libass-dev \
       libfreetype-dev \
@@ -67,7 +66,6 @@ RUN set -eux; \
       libvpx-dev \
       libwebp-dev \
       libopenjp2-7-dev \
-      libjxl-dev \
       libzimg-dev \
       libchromaprint-dev \
       libsrt-gnutls-dev \
@@ -94,6 +92,8 @@ RUN set -eux; \
       libopenslide-dev \
     ); \
     optional_packages=( \
+      libshaderc-dev \
+      libjxl-dev \
       libsvtav1enc-dev \
       libcgif-dev \
       libspng-dev \

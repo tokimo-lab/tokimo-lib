@@ -5,7 +5,14 @@ IFS=$'\n\t'
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd -P)"
 
-PREFIX="${PREFIX:-/opt/tokimo-lib}"
+if [[ -z "${PREFIX:-}" ]]; then
+  # GitHub macOS runners cannot write /opt; use their writable temp prefix in CI.
+  if [[ -n "${CI:-}" && -n "${RUNNER_TEMP:-}" ]]; then
+    PREFIX="$RUNNER_TEMP/tokimo-lib"
+  else
+    PREFIX="/opt/tokimo-lib"
+  fi
+fi
 WORK_DIR="${WORK_DIR:-$REPO_ROOT}"
 BUILD_ROOT="${BUILD_ROOT:-$WORK_DIR/build}"
 INSTALL_DIR="$REPO_ROOT/install"
