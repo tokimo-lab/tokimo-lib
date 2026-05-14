@@ -149,6 +149,8 @@ verify_glib_soname_providers() {
 
     printf '[verify-bundle] SONAME %s provider: %s\n' "$soname" "$provider" >&2
   done
+
+  verify_glib_needed_lists_match
 }
 
 print_needed_mismatch() {
