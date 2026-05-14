@@ -8,6 +8,7 @@ tag = "v8.18.2"
 
 [libvips.checksums]
 source_tar_xz_sha256 = "a30d4aede16f1c2899c1a2241870f8a7409feafa38484bcdcdac113d6d6f8ff5"
+windows_zip_sha256 = "08effbafe12c6700345882b011cefeb41bcb305b959f5c0812a56cd1b0ddb752"
 
 [glib]
 source = "ubuntu-22.04 apt"

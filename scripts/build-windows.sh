@@ -107,6 +107,15 @@ resolve_libvips_source() {
   LIBVIPS_VERSION="${LIBVIPS_VERSION#v}"
 }
 
+verify_libvips_windows_checksum() {
+  local expected actual
+
+  expected="$(toml_value libvips.checksums windows_zip_sha256 "$COMPONENTS_FILE" || true)"
+  [[ -n "$expected" ]] || die "missing libvips.checksums.windows_zip_sha256 in $COMPONENTS_FILE"
+  actual="$(sha256sum "$LIBVIPS_ZIP" | awk '{print $1}')"
+  [[ "$actual" == "$expected" ]] || die "libvips Windows zip sha256 mismatch: expected $expected, got $actual"
+}
+
 sync_git_repo() {
   local url="$1"
   local ref="$2"
@@ -296,6 +305,7 @@ download_libvips_windows() {
     warn "primary libvips artifact unavailable, trying fallback"
     curl -fL "$fallback_url" -o "$LIBVIPS_ZIP"
   fi
+  verify_libvips_windows_checksum
 
   unzip -q "$LIBVIPS_ZIP" -d "$LIBVIPS_WINDOWS_DIR"
 }
