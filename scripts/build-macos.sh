@@ -130,6 +130,15 @@ resolve_libvips_source() {
   set_libvips_paths
 }
 
+verify_libvips_tarball_checksum() {
+  local expected actual
+
+  expected="$(toml_value libvips.checksums source_tar_xz_sha256 "$COMPONENTS_FILE" || true)"
+  [[ -n "$expected" ]] || die "missing libvips.checksums.source_tar_xz_sha256 in $COMPONENTS_FILE"
+  actual="$(shasum -a 256 "$LIBVIPS_TARBALL" | awk '{print $1}')"
+  [[ "$actual" == "$expected" ]] || die "libvips tarball sha256 mismatch: expected $expected, got $actual"
+}
+
 install_brew_deps() {
   command -v brew >/dev/null 2>&1 || die "Homebrew is required on macOS"
   HOMEBREW_PREFIX="$(brew --prefix)"
@@ -335,6 +344,7 @@ download_libvips_source() {
     log "Downloading libvips $LIBVIPS_VERSION"
     curl -fL "$url" -o "$LIBVIPS_TARBALL"
   fi
+  verify_libvips_tarball_checksum
 
   if [[ ! -d "$LIBVIPS_SRC_DIR" ]]; then
     log "Extracting libvips to $LIBVIPS_SRC_DIR"
