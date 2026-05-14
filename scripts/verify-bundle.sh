@@ -150,36 +150,25 @@ verify_glib_soname_providers() {
     printf '[verify-bundle] SONAME %s provider: %s\n' "$soname" "$provider" >&2
   done
 
-  verify_glib_needed_lists_match
+  verify_trio_uses_same_glib
 }
 
-print_needed_mismatch() {
-  local base_soname="$1"
-  local base_file="$2"
-  local other_soname="$3"
-  local other_file="$4"
+verify_trio_uses_same_glib() {
+  local glib_soname="libglib-2.0.so.0"
+  local gobject_soname="libgobject-2.0.so.0"
+  local gio_soname="libgio-2.0.so.0"
+  local gobject_file="${soname_to_realpath[$gobject_soname]}"
+  local gio_file="${soname_to_realpath[$gio_soname]}"
 
-  printf '[verify-bundle] NEEDED mismatch between %s and %s\n' "$base_soname" "$other_soname" >&2
-  printf -- '--- %s (%s)\n' "$base_soname" "$base_file" >&2
-  printf -- '+++ %s (%s)\n' "$other_soname" "$other_file" >&2
-  comm -3 <(needed_list "$base_file") <(needed_list "$other_file") \
-    | awk '{ if ($0 ~ /^\t/) { sub(/^\t/, "+ "); print } else { print "- " $0 } }' >&2
-}
+  if ! needed_list "$gobject_file" | grep -Fxq -- "$glib_soname"; then
+    fail "$gobject_soname must NEED $glib_soname"
+  fi
 
-verify_glib_needed_lists_match() {
-  local base_soname="${GLIB_SONAMES[0]}"
-  local base_file="${soname_to_realpath[$base_soname]}"
-  local base_needed other_soname other_file other_needed
+  if ! needed_list "$gio_file" | grep -Fxq -- "$glib_soname"; then
+    fail "$gio_soname must NEED $glib_soname"
+  fi
 
-  base_needed="$(needed_list "$base_file")"
-  for other_soname in "${GLIB_SONAMES[@]:1}"; do
-    other_file="${soname_to_realpath[$other_soname]}"
-    other_needed="$(needed_list "$other_file")"
-    if [[ "$base_needed" != "$other_needed" ]]; then
-      print_needed_mismatch "$base_soname" "$base_file" "$other_soname" "$other_file"
-      fail "GLib trio provider NEEDED lists differ"
-    fi
-  done
+  log "GLib trio share single libglib provider"
 }
 
 verify_ldd_path() {
