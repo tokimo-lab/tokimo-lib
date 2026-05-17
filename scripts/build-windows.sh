@@ -468,12 +468,30 @@ create_tarball() {
   tar -cf - -C "$INSTALL_DIR" bin lib include META.txt | zstd -19 -T0 -o "$TARBALL" -f
 }
 
+# Move FFmpeg MSVC import libraries from bin/ to lib/.
+#
+# FFmpeg's `make install` (cross-compiled via BtbN) places DLLs and their MSVC
+# import .lib files together in bin/, while lib/ only receives GCC .dll.a and
+# .def files.  Consumers that link against FFmpeg via FFMPEG_LIBS_DIR=lib/
+# (e.g. rusty_ffmpeg / rsmpeg) need the .lib files in lib/.
+relocate_ffmpeg_import_libs() {
+  local lib name
+
+  for lib in avcodec avdevice avfilter avformat avutil swresample swscale postproc; do
+    for name in "$INSTALL_DIR/bin/${lib}.lib" "$INSTALL_DIR/bin/lib${lib}.dll.a"; do
+      [[ -f "$name" ]] || continue
+      mv -- "$name" "$INSTALL_DIR/lib/"
+    done
+  done
+}
+
 bundle_install_tree() {
   rm -rf -- "$INSTALL_DIR/bin" "$INSTALL_DIR/lib" "$INSTALL_DIR/include" "$INSTALL_DIR/META.txt" "$TARBALL"
   mkdir -p -- "$INSTALL_DIR" "$INSTALL_DIR/bin" "$INSTALL_DIR/lib" "$INSTALL_DIR/include"
   copy_prefix_dir_to_install bin
   copy_prefix_dir_to_install lib
   copy_prefix_dir_to_install include
+  relocate_ffmpeg_import_libs
   assert_unique_basenames
   assert_unique_glib_family
   write_meta
